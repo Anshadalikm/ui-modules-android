@@ -98,11 +98,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
 
         setStatusView(Mesibo.CALLSTATUS_NONE);
 
-        //CallManager.getInstance().Mesibo_onCallStatus(0, 0, mCall.status, 0, null);
-
-        //setCallView();
         setSwappedFeeds(true);
-        //setCallControlsVisibility(!mCallCtx.answered, true);
         ui.pipVideo.setVisibility(mCallCtx.isAnswered()?View.VISIBLE:View.GONE);
 
         mCall.start((MesiboCallActivity) getActivity(), this);
@@ -114,7 +110,6 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
 
         mCall.answer(video);
         setSwappedFeeds(false);
-        //setCallView();
         if(mCall.isVideoCall() && video)
             ui.pipVideo.setVisibility(View.VISIBLE);
     }
@@ -131,7 +126,6 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         else if(id == R.id.incoming_call_disconnect || id == R.id.button_call_disconnect) {
             mCall.hangup();
             setStatusView(Mesibo.CALLSTATUS_COMPLETE);
-            //setCallControlsVisibility(true, true);
             mActivity.delayedFinish(500); // if user clicked end, close asap
         }
         else if(id == R.id.incoming_call_connect) {
@@ -207,7 +201,6 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
     }
 
 
-    // Should be called from UI thread
     private boolean mConnected = false;
     private void callConnected(boolean video) {
         if(mConnected) return;
@@ -447,7 +440,6 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         if(!mCall.isVideoCall()) return;
 
         try {
-            // Show/hide call control fragment
             callControlFragmentVisible = visibility;
             ui.controlLayout.setVisibility(visibility?View.VISIBLE:View.GONE);
 
@@ -469,12 +461,9 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
             public void run() {
                 SystemClock.sleep(autoHideVideoControlsTimeout);
 
-                // we set interrupted status from onDestroy
                 if(Thread.currentThread().isInterrupted())
                     return;
 
-                // TBD. crashing here sometime after cellular call received while other call in prrogress
-                // and we come back here
                 setCallControlsVisibility(false, false);
             }
         });

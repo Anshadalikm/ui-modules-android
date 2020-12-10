@@ -1,0 +1,20 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.tringme.mychat.StartChatting">
+
+    <!--
+    <item
+        android:id="@+id/action_attachment"
+        android:icon="@drawable/ic_add_white_24dp"
+        android:title="Media"
+        app:showAsAction="ifRoom" />
+        -->
+
+    <item
+        android:id="@+id/action_call"
+        android:visible="false"
+        android:title="Call"
+        app:showAsAction="ifRoom" />
+
+</menu>

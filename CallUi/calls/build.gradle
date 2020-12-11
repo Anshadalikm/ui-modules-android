@@ -1,18 +1,4 @@
 apply plugin: 'com.android.library'
-apply from: "/code/android/java/buildscripts/module.gradle"
-
-def getBuildDate() {
-    new Date().format('yyyyMMddHHmmss')
-}
-
-ext {
-    PUBLISH_GROUP_ID = 'com.mesibo.api'
-    PUBLISH_ARTIFACT_ID = 'callui'
-    PUBLISH_ARTIFACT_MAVENID = "CallUi"
-    PUBLISH_VERSION = "${project.MesiboBuildVersion_CallUi}"
-    //PUBLISH_APPSRC = true
-    PUBLISH_SRC = "file:///code/android/java/mesibo/fake"
-}
 
 android {
 
@@ -68,7 +54,3 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
 
-def maven_gradle = "/code/android/java/buildscripts/maven.gradle"
-if (file(maven_gradle).exists()) {
-    apply from: maven_gradle
-}

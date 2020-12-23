@@ -20,13 +20,15 @@ import com.mesibo.calls.api.MesiboCallActivity;
 import com.mesibo.calls.api.MesiboVideoView;
 
 import static com.mesibo.calls.api.MesiboCall.MESIBOCALL_SOUND_RINGING;
+import static com.mesibo.calls.api.MesiboCall.MESIBOCALL_UI_STATE_SHOWCONTROLS;
+import static com.mesibo.calls.api.MesiboCall.MESIBOCALL_UI_STATE_SHOWINCOMING;
 
 
-public class CallFragment extends Fragment implements MesiboCall.CallInProgressListener, View.OnClickListener {
+public class CallFragment extends Fragment implements MesiboCall.InProgressListener, View.OnClickListener {
 
     public static final String TAG = "CallFragment";
     protected MesiboCall.Call mCall = null;
-    protected MesiboCall.CallContext mCallCtx = null;
+    protected MesiboCall.CallProperties mCp = null;
     protected MesiboCallActivity mActivity = null;
 
     @Override
@@ -34,7 +36,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         View view = inflater.inflate(R.layout.fragment_call, container, false);
 
         TextView serviceName = (TextView)view.findViewById(R.id.title);
-        serviceName.setText(mCallCtx.title);
+        serviceName.setText(mCp.title);
 
         // Create UI controls.
         ui.controlLayout = view.findViewById(R.id.control_container);
@@ -101,7 +103,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         //setCallView();
         setSwappedFeeds(true);
         //setCallControlsVisibility(!mCallCtx.answered, true);
-        ui.pipVideo.setVisibility(mCallCtx.isAnswered()?View.VISIBLE:View.GONE);
+        ui.pipVideo.setVisibility(mCall.isAnswered()?View.VISIBLE:View.GONE);
 
         mCall.start((MesiboCallActivity) getActivity(), this);
         return view;
@@ -158,19 +160,19 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         mCall.setVideoView(ui.fullscreenVideo, !mSwappedFeeds);
         mCall.setVideoView(ui.pipVideo, mSwappedFeeds);
 
-        ui.fullscreenVideo.enableMirror(mCallCtx.mirrorVideo);
-        ui.pipVideo.enableMirror(mCallCtx.mirrorVideo);
+        ui.fullscreenVideo.enableMirror(mCp.video.mirror);
+        ui.pipVideo.enableMirror(mCp.video.mirror);
     }
 
     public void setUserDetails(TextView nameView, ImageView image) {
 
-        if(!TextUtils.isEmpty(mCallCtx.user.name)) {
-            nameView.setText(mCallCtx.user.name);
+        if(!TextUtils.isEmpty(mCp.user.name)) {
+            nameView.setText(mCp.user.name);
         } else
-            nameView.setText(mCallCtx.user.address);
+            nameView.setText(mCp.user.address);
 
         if(null != image)
-            image.setImageDrawable(MesiboUtils.getRoundImageDrawable(mCallCtx.userImageSmall));
+            image.setImageDrawable(MesiboUtils.getRoundImageDrawable(mCp.userImageSmall));
     }
 
     @Override
@@ -179,7 +181,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         setButtonAlpha(ui.toggleMuteButton, mCall.getMuteStatus(true, false, false));
         setButtonAlpha(ui.toggleCameraButton, mCall.getMuteStatus(false, true, false));
         updateRemoteMuteButtons();
-        if(mCallCtx.autoAnswer) {
+        if(mCp.autoAnswer) {
             answer(mCall.isVideoCall());
         }
     }
@@ -217,44 +219,46 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
 
     }
 
-    /* recommended view settings - you can override it */
     @Override
-    public void MesiboCall_OnSetupViews(boolean showIncoming, boolean showVideoControls, boolean hideControls,
-                                        boolean prevShowIncoming, boolean prevShowVideoControls, boolean prevHideControls) {
-
-        if(showIncoming != prevShowIncoming) {
-            ui.incomingView.setVisibility(showIncoming?View.VISIBLE:View.GONE);
-            ui.inprogressView.setVisibility(showIncoming?View.GONE:View.VISIBLE);
-        }
-
-        if(showVideoControls != prevShowVideoControls) {
-
-            int acVisibility = showVideoControls?View.GONE:View.VISIBLE;
-            int vcVisibility = showVideoControls?View.VISIBLE:View.GONE;
-
-            //audio controls
-            ui.background.setVisibility(acVisibility);
-            if(!showVideoControls)
-                ui.background.setImageBitmap(mCallCtx.userImage);
-
-            //video controls
-            ui.pipVideo.setVisibility(vcVisibility);
-            ui.fullscreenVideo.setVisibility(vcVisibility);
-            ui.cameraToggleLayout.setVisibility(vcVisibility);
-            ui.cameraSwitchLayout.setVisibility(vcVisibility);
-            ui.thumbnailLayout.setVisibility(vcVisibility);
-            ui.incomingVideoAcceptLayout.setVisibility(vcVisibility);
-
-        }
-
-        if(hideControls != prevHideControls) {
-            setCallControlsVisibility(!hideControls, false);
-        }
+    public void MesiboCall_OnVideo(MesiboCall.CallProperties p, MesiboCall.VideoProperties video, boolean remote) {
 
     }
 
+    /* recommended view settings - you can override it */
     @Override
-    public void MesiboCall_OnStatus(Mesibo.UserProfile profile, int status, boolean video) {
+    public void MesiboCall_OnUpdateUserInterface(MesiboCall.CallProperties p, int state, boolean video, boolean enable) {
+
+        if(state == MESIBOCALL_UI_STATE_SHOWCONTROLS) {
+            setCallControlsVisibility(enable, false);
+            return;
+        }
+
+        boolean showIncoming = (state == MESIBOCALL_UI_STATE_SHOWINCOMING);
+
+        ui.incomingView.setVisibility(showIncoming?View.VISIBLE:View.GONE);
+        ui.inprogressView.setVisibility(showIncoming?View.GONE:View.VISIBLE);
+
+        // audio call controls visibility
+        int acVisibility = video?View.GONE:View.VISIBLE;
+        // video call controls visibility
+        int vcVisibility = video?View.VISIBLE:View.GONE;
+
+        //audio controls
+        ui.background.setVisibility(acVisibility);
+        if(!video)
+            ui.background.setImageBitmap(mCp.userImage);
+
+            //video controls
+        ui.pipVideo.setVisibility(vcVisibility);
+        ui.fullscreenVideo.setVisibility(vcVisibility);
+        ui.cameraToggleLayout.setVisibility(vcVisibility);
+        ui.cameraSwitchLayout.setVisibility(vcVisibility);
+        ui.thumbnailLayout.setVisibility(vcVisibility);
+        ui.incomingVideoAcceptLayout.setVisibility(vcVisibility);
+    }
+
+    @Override
+    public void MesiboCall_OnStatus(MesiboCall.CallProperties p, int status, boolean video) {
 
         setStatusView(status);
 
@@ -326,36 +330,38 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
     public void MesiboCall_OnSetCall(MesiboCallActivity activity, MesiboCall.Call call) {
         mActivity = activity;
         mCall = call;
-        mCallCtx = mCall.getCallContext();
+        mCp = mCall.getCallProperties();
+        mCp.activity = activity;
     }
 
     @Override
-    public void MesiboCall_OnMute(boolean audioMuted, boolean videoMuted, boolean remote) {
+    public void MesiboCall_OnMute(MesiboCall.CallProperties p, boolean audioMuted, boolean videoMuted, boolean remote) {
 
     }
 
     @Override
-    public void MesiboCall_OnPlayInCallSound(int type, boolean play) {
+    public boolean MesiboCall_OnPlayInCallSound(MesiboCall.CallProperties p, int type, boolean play) {
         if(!play) {
             mCall.stopInCallSound();
-            return;
+            return true;
         }
 
-        mCall.playInCallSound(mActivity.getApplicationContext(), (MESIBOCALL_SOUND_RINGING == type)?R.raw.ring:R.raw.busy, true);
+        mCall.playInCallSound(mActivity.getApplicationContext(), (MESIBOCALL_SOUND_RINGING == type)?R.raw.mesibo_ring :R.raw.mesibo_busy, true);
+        return true;
     }
 
     @Override
-    public void MesiboCall_OnHangup(boolean hangupByUser) {
+    public void MesiboCall_OnHangup(MesiboCall.CallProperties p, int reason) {
 
     }
 
     @Override
-    public void MesiboCall_OnAudioDeviceChanged(MesiboCall.AudioDevice active, MesiboCall.AudioDevice inactive) {
+    public void MesiboCall_OnAudioDeviceChanged(MesiboCall.CallProperties p, MesiboCall.AudioDevice active, MesiboCall.AudioDevice inactive) {
         setButtonAlpha(ui.toggleSpeakerButton, active == MesiboCall.AudioDevice.SPEAKER);
     }
 
     @Override
-    public void MesiboCall_OnDTMF(int digit) {
+    public void MesiboCall_OnDTMF(MesiboCall.CallProperties p, int digit) {
 
     }
 
@@ -364,7 +370,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
         switch (status) {
             case Mesibo.CALLSTATUS_NONE:
                 statusText = "Initiating Call";
-                if(mCallCtx.isIncoming())
+                if(mCall.isIncoming())
                     statusText = "Incoming Call";
                 break;
 
@@ -413,7 +419,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
                 break;
 
             case Mesibo.CALLSTATUS_HOLD:
-                if(mCallCtx.isAnswered()) {
+                if(mCall.isAnswered()) {
                     statusText = "On Hold";
                 }
                 break;
@@ -433,7 +439,7 @@ public class CallFragment extends Fragment implements MesiboCall.CallInProgressL
     protected long autoHideVideoControlsTimeout = 7000;
     // Helper functions.
     protected void toggleCallControlsVisibility() {
-        if (!mCallCtx.isAnswered()) {
+        if (!mCall.isAnswered()) {
             return;
         }
 

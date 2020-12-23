@@ -3,7 +3,6 @@ package com.mesibo.calls.ui;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.widget.FrameLayout;
 
 import com.mesibo.api.Mesibo;
 import com.mesibo.calls.api.MesiboCall;
@@ -64,11 +63,15 @@ public class CallActivity extends MesiboCallActivity {
                 profile.name = mAddress;
             }
 
-            MesiboCall.CallContext cc = new MesiboCall.CallContext(mVideo);
+            MesiboCall.CallProperties cc = MesiboCall.getInstance().new CallProperties(mVideo);
             cc.parent = this;
             cc.activity = this;
             cc.user = profile;
-            cc.useScreencapture = mScreenCapture;
+            cc.video.screenCapture = mScreenCapture;
+
+            MesiboCallUi.Listener cul = MesiboCallUi.getInstance().getListener();
+            if(null != cul)
+                cul.MesiboCallUi_OnConfig(cc);
 
             mCall = MesiboCall.getInstance().call(cc);
 
@@ -108,6 +111,9 @@ public class CallActivity extends MesiboCallActivity {
     @Override
     public void onResume() {
         super.onResume();
+        if(!mInit)
+            return;
+
         mCall = MesiboCall.getInstance().getActiveCall();
         if(null == mCall) {
             finish();

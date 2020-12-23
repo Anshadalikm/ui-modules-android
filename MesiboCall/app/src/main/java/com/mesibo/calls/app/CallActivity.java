@@ -3,7 +3,6 @@ package com.mesibo.calls.app;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.widget.FrameLayout;
 
 import com.mesibo.api.Mesibo;
 import com.mesibo.calls.api.MesiboCall;
@@ -41,7 +40,9 @@ public class CallActivity extends MesiboCallActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
 
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        // If request is cancelled, the result arrays are empty.
+        if (grantResults != null && grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             initCall();
         }
         else
@@ -63,11 +64,11 @@ public class CallActivity extends MesiboCallActivity {
                 profile.name = mAddress;
             }
 
-            MesiboCall.CallContext cc = new MesiboCall.CallContext(mVideo);
+            MesiboCall.CallProperties cc = MesiboCall.getInstance().new CallProperties(mVideo);
             cc.parent = this;
             cc.activity = this;
             cc.user = profile;
-            cc.useScreencapture = mScreenCapture;
+            cc.video.screenCapture = mScreenCapture;
 
             mCall = MesiboCall.getInstance().call(cc);
 
@@ -107,6 +108,9 @@ public class CallActivity extends MesiboCallActivity {
     @Override
     public void onResume() {
         super.onResume();
+        if(!mInit)
+            return;
+
         mCall = MesiboCall.getInstance().getActiveCall();
         if(null == mCall) {
             finish();

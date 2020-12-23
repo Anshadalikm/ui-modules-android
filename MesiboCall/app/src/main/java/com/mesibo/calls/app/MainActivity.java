@@ -1,5 +1,6 @@
 package com.mesibo.calls.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +13,7 @@ import com.mesibo.calls.api.MesiboCall;
 
 
 
-public class MainActivity extends AppCompatActivity implements Mesibo.ConnectionListener, MesiboCall.Listener {
+public class MainActivity extends AppCompatActivity implements Mesibo.ConnectionListener, MesiboCall.IncomingListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +48,7 @@ public class MainActivity extends AppCompatActivity implements Mesibo.Connection
         fab_v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean videoCall = true;
-                MesiboCall.getInstance().launchCallActivity(MainActivity.this, CallActivity.class,
-                        destination, true);
+                launchCustomCallActivity(destination, true, false);
             }
         });
 
@@ -57,8 +56,7 @@ public class MainActivity extends AppCompatActivity implements Mesibo.Connection
         fab_a.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MesiboCall.getInstance().launchCallActivity(MainActivity.this, CallActivity.class,
-                        destination, false);
+                launchCustomCallActivity(destination, false, false);
             }
         });
 
@@ -73,6 +71,14 @@ public class MainActivity extends AppCompatActivity implements Mesibo.Connection
         });
     }
 
+    protected void launchCustomCallActivity(String destination, boolean video, boolean incoming) {
+        Intent intent = new Intent(this, CallActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        intent.putExtra("video", video);
+        intent.putExtra("address", destination);
+        intent.putExtra("incoming", incoming);
+        startActivity(intent);
+    }
 
     @Override
     public void Mesibo_onConnectionStatus(int status) {
@@ -80,32 +86,28 @@ public class MainActivity extends AppCompatActivity implements Mesibo.Connection
     }
 
     @Override
-    public MesiboCall.CallContext MesiboCall_OnIncoming(MesiboCall.Call call, Mesibo.UserProfile profile, boolean video) {
-        MesiboCall.CallContext cc;
-        if(call != null) {
-            /* launch activity - will be called only if activity was passed*/
-            return null;
-        }
-
-        /* set up call infomation and class name of activity to be launched. You can also pass
-           an existing activity. In that case, MesiboCall_OnIncoming will be called again ith the call
-           object which you can use in your activity.
-         */
-        cc = new MesiboCall.CallContext(video);
+    public MesiboCall.CallProperties MesiboCall_OnIncoming(Mesibo.UserProfile profile, boolean video) {
+        MesiboCall.CallProperties cc = MesiboCall.getInstance().createCallProperties(video);
         cc.parent = getApplicationContext();
+        cc.user = profile;
         cc.className = CallActivity.class;
-        /* setup other parameters as required */
         return cc;
     }
 
     @Override
-    public boolean MesiboCall_OnError(MesiboCall.CallContext ctx, int error) {
-        return false;
+    public boolean MesiboCall_OnShowUserInterface(MesiboCall.Call call, MesiboCall.CallProperties cp) {
+        launchCustomCallActivity(cp.user.address, cp.video.enabled, true);
+        return true;
     }
 
     @Override
+    public void MesiboCall_OnError(MesiboCall.CallProperties properties, int error) {
+
+    }
+
+
+    @Override
     public boolean MesiboCall_onNotify(int type, Mesibo.UserProfile profile, boolean video) {
-        /* notify user for msised calls, etc. */
         return false;
     }
 

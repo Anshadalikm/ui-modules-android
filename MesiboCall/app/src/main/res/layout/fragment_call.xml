@@ -16,26 +16,6 @@
         android:background="@color/mesibo"
         >
 
-        <ImageView
-            android:id="@+id/remote_mic"
-            android:layout_width="@dimen/outgoing_video_call_icon_size"
-            android:layout_height="@dimen/outgoing_video_call_icon_size"
-            android:src="@drawable/ic_mesibo_mic_off"
-            android:visibility="gone"
-            android:layout_gravity="right"
-            android:layout_margin="@dimen/_20sdp"/>
-
-        <ImageView
-            android:id="@+id/remote_cam"
-            android:layout_margin="@dimen/_20sdp"
-            android:layout_width="@dimen/outgoing_video_call_icon_size"
-            android:layout_height="@dimen/outgoing_video_call_icon_size"
-            android:src="@drawable/ic_mesibo_videocam_off"
-            android:visibility="gone"
-            />
-
-
-
         <com.mesibo.calls.api.MesiboVideoView
             android:id="@+id/fullscreen_video_view"
             android:layout_width="wrap_content"
@@ -51,6 +31,8 @@
             android:layout_margin="16dp"/>
 
     </FrameLayout>
+
+
 
     <FrameLayout  android:id="@+id/control_container" android:layout_width="match_parent" android:layout_height="match_parent">
 
@@ -129,6 +111,8 @@
                 android:layout_marginTop="@dimen/_20sdp"
                 android:src="@drawable/default_user_image"
                 />
+
+
 
             <LinearLayout
                 android:id="@+id/outgoing_call_container"
@@ -406,5 +390,17 @@
                 />
 
         </RelativeLayout>
+    </FrameLayout>
+
+    <FrameLayout  android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/remote_mute"
+            android:layout_margin="@dimen/_20sdp"
+            android:layout_width="@dimen/outgoing_video_call_icon_size"
+            android:layout_height="@dimen/outgoing_video_call_icon_size"
+            android:src="@drawable/ic_mesibo_videocam_off"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:visibility="gone"
+            />
     </FrameLayout>
 </FrameLayout>

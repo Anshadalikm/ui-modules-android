@@ -1,5 +1,6 @@
 package com.mesibo.calls.app;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -64,8 +65,8 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         ui.incomingVideoAcceptLayout = view.findViewById(R.id.incoming_video_accept_container);
 
 
-        ui.remoteMic = view.findViewById(R.id.remote_mic);
-        ui.remoteCamera = view.findViewById(R.id.remote_cam);
+        ui.remoteMute = view.findViewById(R.id.remote_mute);
+        ui.remoteMute.setColorFilter(Color.argb(200, 200, 0, 0));
 
         ui.disconnectButton.setOnClickListener(this);
         ui.cameraSwitchButton.setOnClickListener(this);
@@ -99,11 +100,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
         setStatusView(Mesibo.CALLSTATUS_NONE);
 
-        //CallManager.getInstance().Mesibo_onCallStatus(0, 0, mCall.status, 0, null);
-
-        //setCallView();
-        setSwappedFeeds(true);
-        //setCallControlsVisibility(!mCallCtx.answered, true);
+        setSwappedFeeds(mCall.isVideoViewsSwapped());
         ui.pipVideo.setVisibility(mCall.isAnswered()?View.VISIBLE:View.GONE);
 
         mCall.start((MesiboCallActivity) getActivity(), this);
@@ -126,7 +123,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
         // we can't use switch and hence using if-else
         if(id == R.id.pip_video_view)
-            setSwappedFeeds(!mSwappedFeeds);
+            setSwappedFeeds(!mCall.isVideoViewsSwapped());
         else if(id == R.id.fullscreen_video_view)
             toggleCallControlsVisibility();
         else if(id == R.id.incoming_call_disconnect || id == R.id.button_call_disconnect) {
@@ -152,14 +149,12 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         }
     }
 
-    private boolean mSwappedFeeds = false;
     private void setSwappedFeeds(boolean isSwappedFeeds) {
         if(!mCall.isVideoCall()) return;
 
-        Log.d(TAG, "setSwappedFeeds: " + isSwappedFeeds);
-        mSwappedFeeds = isSwappedFeeds;
-        mCall.setVideoView(ui.fullscreenVideo, !mSwappedFeeds);
-        mCall.setVideoView(ui.pipVideo, mSwappedFeeds);
+        mCall.setVideoViewsSwapped(isSwappedFeeds);
+        mCall.setVideoView(ui.fullscreenVideo, !isSwappedFeeds);
+        mCall.setVideoView(ui.pipVideo, isSwappedFeeds);
 
         ui.fullscreenVideo.enableMirror(mCp.video.mirror);
         ui.pipVideo.enableMirror(mCp.video.mirror);
@@ -179,9 +174,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
     @Override
     public void onResume() {
         super.onResume();
-        setButtonAlpha(ui.toggleMuteButton, mCall.getMuteStatus(true, false, false));
-        setButtonAlpha(ui.toggleCameraButton, mCall.getMuteStatus(false, true, false));
-        updateRemoteMuteButtons();
+
         if(mCp.autoAnswer) {
             answer(mCall.isVideoCall());
         }
@@ -203,21 +196,32 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
     }
 
     public void updateRemoteMuteButtons() {
-        ui.remoteMic.setVisibility(mCall.getMuteStatus(true, false, true)?View.VISIBLE:View.INVISIBLE);
-        ui.remoteCamera.setVisibility(mCall.getMuteStatus(false, true, true)?View.VISIBLE:View.INVISIBLE);
+        boolean amute = mCall.getMuteStatus(true, false, true);
+        boolean vmute = mCall.getMuteStatus(false, true, true);
+        if(!amute && !vmute) {
+            ui.remoteMute.setVisibility(View.GONE);
+            return;
+        }
+        int id = R.drawable.ic_mesibo_mic_off;
+        if(vmute)
+            id = R.drawable.ic_mesibo_videocam_off;
+        if(vmute && amute)
+            id = R.drawable.ic_mesibo_tv_off;
+
+        ui.remoteMute.setImageResource(id);
+        ui.remoteMute.setVisibility(View.VISIBLE);
     }
 
 
     // Should be called from UI thread
     private boolean mConnected = false;
-    private void callConnected(boolean video) {
+    private void callConnected() {
         if(mConnected) return;
         mConnected = true;
-        if(video) {
+        if(mCall.isVideoCall()) {
             ui.pipVideo.setVisibility(View.VISIBLE);
             setSwappedFeeds(false);
         }
-
     }
 
     @Override
@@ -243,6 +247,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         int acVisibility = video?View.GONE:View.VISIBLE;
         // video call controls visibility
         int vcVisibility = video?View.VISIBLE:View.GONE;
+        int vciVisibility = (showIncoming && video)?View.VISIBLE:View.GONE;
 
         //audio controls
         ui.background.setVisibility(acVisibility);
@@ -255,7 +260,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         ui.cameraToggleLayout.setVisibility(vcVisibility);
         ui.cameraSwitchLayout.setVisibility(vcVisibility);
         ui.thumbnailLayout.setVisibility(vcVisibility);
-        ui.incomingVideoAcceptLayout.setVisibility(vcVisibility);
+        ui.incomingVideoAcceptLayout.setVisibility(vciVisibility);
     }
 
     @Override
@@ -273,16 +278,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         switch (status) {
 
             case Mesibo.CALLSTATUS_CONNECTED:
-                callConnected(video);
-                break;
-
-            case Mesibo.CALLSTATUS_RECONNECTING:
-                setCallControlsVisibility(true, false);
-                break;
-
-            case Mesibo.CALLSTATUS_MUTE:
-            case Mesibo.CALLSTATUS_UNMUTE:
-                updateRemoteMuteButtons();
+                callConnected();
                 break;
         }
 
@@ -302,7 +298,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         public ImageButton toggleCameraButton;
         public ImageButton toggleMuteButton;
         public ImageButton toggleSpeakerButton;
-        public ImageView remoteMic, remoteCamera;
+        public ImageView remoteMute;
         public ImageButton acceptButton, acceptAudioButton;
         public ImageButton declineButton;
         public ImageButton disconnectButton;
@@ -337,7 +333,12 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
     @Override
     public void MesiboCall_OnMute(MesiboCall.CallProperties p, boolean audioMuted, boolean videoMuted, boolean remote) {
-
+        if(remote)
+            updateRemoteMuteButtons();
+        else {
+            setButtonAlpha(ui.toggleMuteButton, mCall.getMuteStatus(true, false, false));
+            setButtonAlpha(ui.toggleCameraButton, mCall.getMuteStatus(false, true, false));
+        }
     }
 
     @Override

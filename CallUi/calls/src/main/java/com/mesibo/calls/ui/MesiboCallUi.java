@@ -48,9 +48,12 @@ public class MesiboCallUi implements MesiboCall.IncomingListener {
         MesiboCall.getInstance().setListener(this);
     }
 
-    public static void call(Context parent, String destination, boolean video) {
-         //MesiboCall.getInstance().launchCallActivity(parent, CallActivity.class, destination, video);
-        MesiboCall.getInstance().callUi(parent, destination, video);
+    public static boolean callUi(Context parent, String destination, boolean video) {
+        return MesiboCall.getInstance().callUi(parent, destination, video);
+    }
+
+    public static boolean callUiForExistingCall(Context parent) {
+        return MesiboCall.getInstance().callUiForExistingCall(parent);
     }
 
     /* set up call infomation and class name of activity to be launched. You can also pass

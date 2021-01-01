@@ -6,7 +6,7 @@ android {
         minSdkVersion "${project.minSdkVersion}"
         targetSdkVersion "${project.targetSdkVersion}"
         versionCode 1
-        versionName "${project.MesiboBuildVersion_MesiboCalls}"
+        versionName "${project.MesiboBuildVersion_CallUi}"
         buildConfigField "String", "BUILD_VERSION", "\"${project.PUBLISH_VERSION}\""
         buildConfigField("String", "BUILD_TIMESTAMP", "\"${getBuildDate()}\"")
     }
@@ -47,7 +47,7 @@ dependencies {
 
     implementation "com.mesibo.api:webrtc:${project.MesiboBuildVersion_Webrtc}"
     implementation "com.mesibo.api:mesibo:${project.MesiboPublishVersion_Api}"
-    implementation "com.mesibo.api:callapi:${project.MesiboPublishVersion_CallApi}"
+    implementation "com.mesibo.api:calls:${project.MesiboPublishVersion_Calls}"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'

@@ -20,7 +20,6 @@ import com.mesibo.calls.api.MesiboCall;
 import com.mesibo.calls.api.MesiboCallActivity;
 import com.mesibo.calls.api.MesiboVideoView;
 
-
 import static com.mesibo.calls.api.MesiboCall.MESIBOCALL_SOUND_RINGING;
 import static com.mesibo.calls.api.MesiboCall.MESIBOCALL_UI_STATE_SHOWCONTROLS;
 import static com.mesibo.calls.api.MesiboCall.MESIBOCALL_UI_STATE_SHOWINCOMING;
@@ -38,7 +37,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         View view = inflater.inflate(R.layout.fragment_call, container, false);
 
         TextView serviceName = (TextView)view.findViewById(R.id.title);
-        serviceName.setText(mCp.title);
+        serviceName.setText(mCp.ui.title);
 
         // Create UI controls.
         ui.controlLayout = view.findViewById(R.id.control_container);
@@ -49,6 +48,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         ui.status = view.findViewById(R.id.call_status);
         ui.disconnectButton = view.findViewById(R.id.button_call_disconnect);
         ui.cameraSwitchButton = view.findViewById(R.id.button_call_switch_camera);
+        ui.sourceSwitchButton = view.findViewById(R.id.button_call_switch_source);
         ui.toggleSpeakerButton = view.findViewById(R.id.button_call_toggle_speaker);
         ui.toggleCameraButton = view.findViewById(R.id.button_call_toggle_camera);
         ui.toggleMuteButton = view.findViewById(R.id.button_call_toggle_mic);
@@ -57,6 +57,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         ui.declineButton = view.findViewById(R.id.incoming_call_disconnect);
 
         ui.cameraToggleLayout = view.findViewById(R.id.layout_toggle_camera);
+        ui.sourceSwitchLayout = view.findViewById(R.id.layout_switch_source);
         ui.cameraSwitchLayout = view.findViewById(R.id.layout_switch_camera);
 
         ui.incomingView = view.findViewById(R.id.incoming_call_container);
@@ -70,6 +71,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
         ui.disconnectButton.setOnClickListener(this);
         ui.cameraSwitchButton.setOnClickListener(this);
+        ui.sourceSwitchButton.setOnClickListener(this);
         ui.toggleSpeakerButton.setOnClickListener(this);
         ui.toggleCameraButton.setOnClickListener(this);
         ui.toggleMuteButton.setOnClickListener(this);
@@ -90,6 +92,10 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         }
 
         ui.background = view.findViewById(R.id.userImage);
+
+        if(!mCp.ui.showScreenSharing) {
+            ui.sourceSwitchLayout.setVisibility(View.GONE);
+        }
 
 
         ui.thumbnailLayout = view.findViewById(R.id.photo_layout);
@@ -143,6 +149,8 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
             setButtonAlpha(ui.toggleMuteButton, enabled);
         } else if(id == R.id.button_call_switch_camera) {
             mCall.switchCamera();
+        } else if(id == R.id.button_call_switch_source) {
+            mCall.switchSource();
         } else if(id == R.id.button_call_toggle_camera) {
             boolean enabled = mCall.toggleVideoMute();
             setButtonAlpha(ui.toggleCameraButton, enabled);
@@ -156,8 +164,6 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         mCall.setVideoView(ui.fullscreenVideo, !isSwappedFeeds);
         mCall.setVideoView(ui.pipVideo, isSwappedFeeds);
 
-        ui.fullscreenVideo.enableMirror(mCp.video.mirror);
-        ui.pipVideo.enableMirror(mCp.video.mirror);
     }
 
     public void setUserDetails(TextView nameView, ImageView image) {
@@ -168,7 +174,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
             nameView.setText(mCp.user.address);
 
         if(null != image)
-            image.setImageDrawable(MesiboUtils.getRoundImageDrawable(mCp.userImageSmall));
+            image.setImageDrawable(MesiboUtils.getRoundImageDrawable(mCp.ui.userImageSmall));
     }
 
     @Override
@@ -225,6 +231,11 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
     }
 
     @Override
+    public void MesiboCall_OnVideoSourceChanged(int source, int index) {
+        setButtonAlpha(ui.sourceSwitchButton, source == MesiboCall.MESIBOCALL_VIDEOSOURCE_SCREEN);
+    }
+
+    @Override
     public void MesiboCall_OnVideo(MesiboCall.CallProperties p, MesiboCall.VideoProperties video, boolean remote) {
 
     }
@@ -252,13 +263,15 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         //audio controls
         ui.background.setVisibility(acVisibility);
         if(!video)
-            ui.background.setImageBitmap(mCp.userImage);
+            ui.background.setImageBitmap(mCp.ui.userImage);
 
             //video controls
         ui.pipVideo.setVisibility(vcVisibility);
         ui.fullscreenVideo.setVisibility(vcVisibility);
         ui.cameraToggleLayout.setVisibility(vcVisibility);
         ui.cameraSwitchLayout.setVisibility(vcVisibility);
+        if(mCp.ui.showScreenSharing)
+            ui.sourceSwitchLayout.setVisibility(vcVisibility);
         ui.thumbnailLayout.setVisibility(vcVisibility);
         ui.incomingVideoAcceptLayout.setVisibility(vciVisibility);
     }
@@ -295,6 +308,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
         public TextView contactView;
         public ImageButton cameraSwitchButton;
+        public ImageButton sourceSwitchButton;
         public ImageButton toggleCameraButton;
         public ImageButton toggleMuteButton;
         public ImageButton toggleSpeakerButton;
@@ -305,7 +319,7 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         public ImageView background;
 
         public View incomingView, inprogressView, controlLayout;
-        public View cameraToggleLayout, cameraSwitchLayout, thumbnailLayout;
+        public View cameraToggleLayout, cameraSwitchLayout, thumbnailLayout, sourceSwitchLayout;
         public View incomingVideoAcceptLayout, incomingAudioAcceptLayout;
 
         public String mStatusText = "";
@@ -360,6 +374,16 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
     @Override
     public void MesiboCall_OnAudioDeviceChanged(MesiboCall.CallProperties p, MesiboCall.AudioDevice active, MesiboCall.AudioDevice inactive) {
         setButtonAlpha(ui.toggleSpeakerButton, active == MesiboCall.AudioDevice.SPEAKER);
+    }
+
+    @Override
+    public void MesiboCall_OnOrientationChanged(boolean landscape, boolean remote) {
+
+    }
+
+    @Override
+    public void MesiboCall_OnBatteryStatus(boolean low, boolean remote) {
+
     }
 
     @Override

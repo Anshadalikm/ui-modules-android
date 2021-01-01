@@ -68,7 +68,7 @@ public class CallActivity extends MesiboCallActivity {
             cc.parent = this;
             cc.activity = this;
             cc.user = profile;
-            cc.video.screenCapture = mScreenCapture;
+            cc.video.source = mVideoSource;
 
             mCall = MesiboCall.getInstance().call(cc);
 

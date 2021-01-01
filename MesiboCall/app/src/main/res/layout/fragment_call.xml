@@ -171,6 +171,25 @@
 
                     </LinearLayout>
                     <LinearLayout
+                        android:id="@+id/layout_switch_source"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:layout_margin="@dimen/outgoing_video_call_icon_margin"
+                        android:padding="@dimen/outgoing_video_call_icon_padding"
+                        android:background="@drawable/drawable_background_circle">
+
+                        <ImageButton
+                            android:id="@+id/button_call_switch_source"
+                            android:background="@drawable/ic_mesibo_screen_sharing"
+                            android:contentDescription="@string/switch_source"
+                            android:layout_width="@dimen/outgoing_video_call_icon_size"
+                            android:layout_height="@dimen/outgoing_video_call_icon_size"
+                            android:layout_gravity="left"/>
+
+                    </LinearLayout>
+                    <LinearLayout
                         android:id="@+id/layout_toggle_camera"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

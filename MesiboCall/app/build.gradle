@@ -43,17 +43,8 @@ dependencies {
 
     implementation "com.mesibo.api:mesibo:${project.MesiboVersion_Api}"
 
-    implementation "com.mesibo.api:callapi:${project.MesiboVersion_CallApi}"
+    implementation "com.mesibo.api:calls:${project.MesiboVersion_Calls}"
 
-    if(true) {
-        //
-
-    } else {
-        //Note, we need two lines if using aar
-        implementation 'com.google.code.gson:gson:2.7'
-
-
-    }
 
     implementation "android.arch.lifecycle:extensions:1.1.1"
     annotationProcessor "android.arch.lifecycle:compiler:1.1.1"

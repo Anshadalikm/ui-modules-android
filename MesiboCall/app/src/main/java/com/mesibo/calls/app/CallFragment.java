@@ -245,6 +245,9 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
     public void MesiboCall_OnUpdateUserInterface(MesiboCall.CallProperties p, int state, boolean video, boolean enable) {
 
         if(state == MESIBOCALL_UI_STATE_SHOWCONTROLS) {
+            if(!enable && !mCp.ui.autoHideControls)
+                return;
+
             setCallControlsVisibility(enable, false);
             return;
         }
@@ -278,6 +281,9 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
     @Override
     public void MesiboCall_OnStatus(MesiboCall.CallProperties p, int status, boolean video) {
+
+        if(null != mCp.ui.inProgressListener)
+            mCp.ui.inProgressListener.MesiboCall_OnStatus(p, status, video);
 
         setStatusView(status);
 
@@ -343,10 +349,15 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
         mCall = call;
         mCp = mCall.getCallProperties();
         mCp.activity = activity;
+        if(null != mCp.ui.inProgressListener)
+            mCp.ui.inProgressListener.MesiboCall_OnSetCall(activity, mCall);
     }
 
     @Override
     public void MesiboCall_OnMute(MesiboCall.CallProperties p, boolean audioMuted, boolean videoMuted, boolean remote) {
+        if(null != mCp.ui.inProgressListener)
+            mCp.ui.inProgressListener.MesiboCall_OnMute(p, audioMuted, videoMuted, remote);
+
         if(remote)
             updateRemoteMuteButtons();
         else {
@@ -368,7 +379,8 @@ public class CallFragment extends Fragment implements MesiboCall.InProgressListe
 
     @Override
     public void MesiboCall_OnHangup(MesiboCall.CallProperties p, int reason) {
-
+        if(null != mCp.ui.inProgressListener)
+            mCp.ui.inProgressListener.MesiboCall_OnHangup(p, reason);
     }
 
     @Override

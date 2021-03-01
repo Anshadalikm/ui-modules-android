@@ -18,7 +18,7 @@ public class CallActivity extends MesiboCallActivity {
 
         setContentView(R.layout.activity_call);
 
-        int res = checkPermissions(mVideo);
+        int res = checkPermissions(mCp.video.enabled);
 
         /* permissions were declined */
         if(res < 0) {
@@ -41,8 +41,7 @@ public class CallActivity extends MesiboCallActivity {
                                            String permissions[], int[] grantResults) {
 
         // If request is cancelled, the result arrays are empty.
-        if (grantResults != null && grantResults.length > 0 &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             initCall();
         }
         else
@@ -57,20 +56,10 @@ public class CallActivity extends MesiboCallActivity {
 
         if(null == mCall) {
 
-            Mesibo.UserProfile profile = Mesibo.getUserProfile(mAddress);
-            if(null == profile) {
-                profile = new Mesibo.UserProfile();
-                profile.address = mAddress;
-                profile.name = mAddress;
-            }
-
-            MesiboCall.CallProperties cc = MesiboCall.getInstance().new CallProperties(mVideo);
-            cc.parent = this;
-            cc.activity = this;
-            cc.user = profile;
-            cc.video.source = mVideoSource;
-
-            mCall = MesiboCall.getInstance().call(cc);
+            if(null == mCp.parent)
+                mCp.parent = this;
+            mCp.activity = this;
+            mCall = MesiboCall.getInstance().call(mCp);
 
             if(null == mCall || !mCall.isCallInProgress()) {
                 finish();
@@ -82,15 +71,6 @@ public class CallActivity extends MesiboCallActivity {
 
         CallFragment fragment = null;
         fragment = new CallFragment();
-
-        /* OPTIONAL - you can use different fragments for different type of calls */
-        if(mVideo) {
-            // show video fragment
-        } else if(mIncoming && mCall.isCallInProgress() && !mCall.isAnswered()) {
-            //show incoming audio fragment
-        } else {
-            //show outgoing audio fragemnt
-        }
 
         fragment.MesiboCall_OnSetCall(this, mCall);
 

@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements Mesibo.Connection
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        String token = "d9c677f7aa11d04c7e10144b568fbcdca1b42724616ecc17114c";
+        String token = "your app token";
 
         /* initialize mesibo */
         Mesibo mesibo = Mesibo.getInstance();
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements Mesibo.Connection
         /* initialize call */
         MesiboCall.getInstance().init(this);
 
-        String destination =  "919901172890";
+        String destination =  "destination";
 
         /* set profile so that it is visible in call screen */
         Mesibo.UserProfile u = new Mesibo.UserProfile();
